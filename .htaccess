@@ -1,0 +1,9 @@
+# Включаем механизм переадресации
+RewriteEngine On
+
+# Если запрошенный файл или каталог существует, отдаем его напрямую
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# Иначе перенаправляем все запросы на index.php
+RewriteRule . index.php [L]
