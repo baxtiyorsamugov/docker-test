@@ -1,4 +1,5 @@
-FROM php:8.1-apache
+# Используем официальный образ PHP с FPM
+FROM php:8.1-fpm
 
 # Обновление репозиториев и установка необходимых библиотек
 RUN apt-get update && apt-get install -y \
@@ -6,18 +7,26 @@ RUN apt-get update && apt-get install -y \
         libonig-dev \
         libxml2-dev \
         unzip \
+        nginx \
     && docker-php-ext-install intl mbstring xml pdo_mysql
 
-# Установка Composer
+# Устанавливаем Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
-
-# Включаем модуль Apache для поддержки ЧПУ
-RUN a2enmod rewrite
 
 # Копируем файлы проекта в рабочую директорию
 COPY . /var/www/html
 
-WORKDIR /var/www/html
-
 # Назначаем права доступа для корректной работы веб-сервера
 RUN chown -R www-data:www-data /var/www/html
+
+# Настроим рабочую директорию для Nginx и PHP
+WORKDIR /var/www/html
+
+# Копируем конфигурацию Nginx в контейнер
+COPY ./nginx.conf /etc/nginx/nginx.conf
+
+# Открываем порты для Nginx и PHP-FPM
+EXPOSE 80
+
+# Стартуем Nginx и PHP-FPM
+CMD service nginx start && php-fpm
